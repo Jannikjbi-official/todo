@@ -1,0 +1,17 @@
+{
+  "name": "JannikJBI Todo",
+  "short_name": "JBI Todo",
+  "description": "FiveM Asset & Budget Manager",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070710",
+  "theme_color": "#5b6ef5",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
