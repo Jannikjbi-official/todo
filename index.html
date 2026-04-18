@@ -68,11 +68,14 @@
     </div>
 
     <div class="field-error hidden" id="setup-err"></div>
-
-    <button class="btn-auth" id="setup-btn" onclick="doSetupConnect()" disabled>
-      <span id="setup-btn-text">Verbinden</span>
-      <span>→</span>
-    </button>
+    
+    <div style="display:flex;gap:10px">
+      <button class="btn-auth" id="setup-btn" onclick="doSetupConnect()" disabled style="flex:1">
+        <span id="setup-btn-text">Verbinden</span>
+        <span>→</span>
+      </button>
+      <button class="btn-ghost" onclick="doLoginLocal()" style="border:1px solid var(--b2);padding:0 20px;border-radius:12px;font-size:.85rem;font-weight:600;color:var(--t2)">Lokal starten</button>
+    </div>
 
     <div class="setup-help-link">
       Noch kein Supabase-Konto?

@@ -10,10 +10,17 @@
                  items on first admin login via DB flag
 ═══════════════════════════════════════════════════════ */
 
-// ═══════════════════════════════════════════
-//  SUPABASE CLIENT
-// ═══════════════════════════════════════════
 let _sb = null; // set via initSupabase()
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+const sbReady = () => !!_sb;
 
 function getSBCreds() {
   return {
@@ -22,18 +29,29 @@ function getSBCreds() {
   };
 }
 
+// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  STORAGE UTILITY (LOCAL FALLBACK)
+// ═══════════════════════════════════════════
+const LStore = {
+  get: (k) => JSON.parse(localStorage.getItem('jbi_' + k) || '[]'),
+  set: (k, v) => localStorage.setItem('jbi_' + k, JSON.stringify(v)),
+  isLocal: () => !localStorage.getItem('sb_url') || !localStorage.getItem('sb_akey')
+};
+
 async function initSupabase() {
   const { url, key } = getSBCreds();
-  if (!url || !key) return false;
+  if (!url || !key) {
+    console.info('No Supabase credentials. Running in Local Mode.');
+    return true; // "Success" for local mode
+  }
 
   try {
-    // Load Supabase JS from CDN if not already loaded
     if (!window.supabase) {
       await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');
     }
     _sb = window.supabase.createClient(url, key);
 
-    // Verify connection
     const { error } = await _sb.from('categories').select('id').limit(1);
     if (error && error.code !== 'PGRST116') {
       console.warn('Supabase connection error:', error.message);
@@ -48,16 +66,6 @@ async function initSupabase() {
   }
 }
 
-function loadScript(src) {
-  return new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = src; s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
-  });
-}
-
-const sbReady = () => !!_sb;
-
 // ═══════════════════════════════════════════
 //  SUPABASE DATA LAYER
 //  All functions return plain JS objects/arrays
@@ -65,20 +73,32 @@ const sbReady = () => !!_sb;
 const SB = {
   // ── CATEGORIES ──
   async getCats() {
-    if (!sbReady()) return [];
+    if (!sbReady()) return LStore.get('cats');
     const { data, error } = await _sb.from('categories').select('*').order('name');
-    if (error) { console.error(error); return []; }
+    if (error) { console.error(error); return LStore.get('cats'); }
     return data;
   },
   async upsertCat(cat) {
-    if (!sbReady()) return null;
+    if (!sbReady()) {
+      const cats = LStore.get('cats');
+      if (!cat.id) cat.id = uid();
+      const idx = cats.findIndex(c => c.id === cat.id);
+      if (idx > -1) cats[idx] = cat; else cats.push(cat);
+      LStore.set('cats', cats);
+      return cat;
+    }
     const { data, error } = await _sb.from('categories').upsert(cat).select().single();
     if (error) throw error;
     return data;
   },
   async deleteCat(id) {
-    if (!sbReady()) return;
-    // Unlink items first
+    if (!sbReady()) {
+      LStore.set('cats', LStore.get('cats').filter(c => c.id !== id));
+      const items = LStore.get('items');
+      items.forEach(i => { if (i.category_id === id) i.category_id = null; });
+      LStore.set('items', items);
+      return;
+    }
     await _sb.from('items').update({ category_id: null }).eq('category_id', id);
     const { error } = await _sb.from('categories').delete().eq('id', id);
     if (error) throw error;
@@ -86,72 +106,83 @@ const SB = {
 
   // ── ITEMS ──
   async getItems() {
-    if (!sbReady()) return [];
-    const { data, error } = await _sb
-      .from('items')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) { console.error(error); return []; }
-    // Normalize DB column names → camelCase for UI
+    if (!sbReady()) return (LStore.get('items') || []).map(normalizeItem);
+    const { data, error } = await _sb.from('items').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return (LStore.get('items') || []).map(normalizeItem); }
     return (data||[]).map(normalizeItem);
   },
   async upsertItem(item) {
-    if (!sbReady()) return null;
+    if (!sbReady()) {
+      const items = LStore.get('items');
+      const row = denormalizeItem(item);
+      if (!row.id) {
+        row.id = uid();
+        row.created_at = new Date().toISOString();
+      }
+      const idx = items.findIndex(i => i.id === row.id);
+      if (idx > -1) items[idx] = row; else items.push(row);
+      LStore.set('items', items);
+      return normalizeItem(row);
+    }
     const row = denormalizeItem(item);
     const { data, error } = await _sb.from('items').upsert(row).select().single();
     if (error) throw error;
     return normalizeItem(data);
   },
   async deleteItem(id) {
-    if (!sbReady()) return;
+    if (!sbReady()) {
+      LStore.set('items', LStore.get('items').filter(i => i.id !== id));
+      return;
+    }
     const { error } = await _sb.from('items').delete().eq('id', id);
     if (error) throw error;
   },
   async patchItem(id, patch) {
-    if (!sbReady()) return;
+    if (!sbReady()) {
+      const items = LStore.get('items');
+      const idx = items.findIndex(i => i.id === id);
+      if (idx > -1) {
+        Object.assign(items[idx], denormalizePatch(patch));
+        LStore.set('items', items);
+      }
+      return;
+    }
     const { error } = await _sb.from('items').update(denormalizePatch(patch)).eq('id', id);
     if (error) throw error;
   },
 
-  // ── USERS (via auth + profiles table) ──
+  // ── USERS ──
   async signIn(email, password) {
-    if (!sbReady()) return { error: { message: 'Supabase nicht verbunden.' } };
+    if (!sbReady()) {
+      // Local Auth simulation
+      if (email && password) return { data: { user: { id: 'local-user', email, user_metadata: { name: email.split('@')[0], role: 'admin' } } } };
+      return { error: { message: 'Ungültige Zugangsdaten' } };
+    }
     return await _sb.auth.signInWithPassword({ email, password });
   },
   async signUp(email, password, name) {
-    if (!sbReady()) return { error: { message: 'Supabase nicht verbunden.' } };
-    const { data, error } = await _sb.auth.signUp({
-      email, password,
-      options: { data: { name, role: 'member' } }
-    });
+    if (!sbReady()) return { error: { message: 'Registrierung im lokalen Modus nicht nötig. Bitte anmelden.' } };
+    const { data, error } = await _sb.auth.signUp({ email, password, options: { data: { name, role: 'member' } } });
     return { data, error };
   },
   async signOut() {
-    if (!sbReady()) return;
+    if (!sbReady()) { localStorage.removeItem('local_session'); return; }
     await _sb.auth.signOut();
   },
   async getSession() {
-    if (!sbReady()) return null;
+    if (!sbReady()) return JSON.parse(localStorage.getItem('local_session'));
     const { data: { session } } = await _sb.auth.getSession();
     return session;
   },
   async getProfile(userId) {
-    // Read a single user's profile (incl. role) from the profiles table
-    if (!sbReady()) return null;
+    if (!sbReady()) return { id: userId, name: 'Local Admin', role: 'admin' };
     const { data, error } = await _sb.from('profiles').select('*').eq('id', userId).single();
     if (error) {
-      console.warn('getProfile error:', error.message);
-      // Try to auto-create profile if missing (happens when trigger didn't fire)
       if (error.code === 'PGRST116') {
         const session = await this.getSession();
         if (session) {
           const meta = session.user.user_metadata || {};
-          await _sb.from('profiles').upsert({
-            id:    userId,
-            name:  meta.name || session.user.email?.split('@')[0] || 'User',
-            email: session.user.email,
-            role:  'member',
-          });
+          await _sb.from('profiles').upsert({ id: userId, name: meta.name || session.user.email?.split('@')[0] || 'User', email: session.user.email, role: 'member' });
           const { data: d2 } = await _sb.from('profiles').select('*').eq('id', userId).single();
           return d2 || null;
         }
@@ -161,36 +192,31 @@ const SB = {
     return data;
   },
   async getUsers() {
-    // Admin only — reads from profiles table
-    if (!sbReady()) return [];
+    if (!sbReady()) return [{ id: 'local-user', name: 'Local Admin', role: 'admin', email: 'local@local.host' }];
     const { data, error } = await _sb.from('profiles').select('*');
-    if (error) return [];
-    return data;
+    return error ? [] : data;
   },
 
-  // ── SEED CHECK ──
   async isSeeded() {
-    if (!sbReady()) return false;
+    if (!sbReady()) return LStore.get('cats').length > 0;
     const { data } = await _sb.from('categories').select('id').limit(1);
     return (data||[]).length > 0;
   },
 
-  // ── IMAGE UPLOAD ──
   async uploadImage(file, path) {
-    if (!sbReady()) throw new Error('Supabase nicht verbunden');
+    if (!sbReady()) {
+      // Return file as data URL (already processed in processFiles)
+      return null; // Handle in saveEntry
+    }
     const { data, error } = await _sb.storage.from('jannikjbi').upload(path, file, { upsert: true });
     if (error) throw error;
     const { data: { publicUrl } } = _sb.storage.from('jannikjbi').getPublicUrl(path);
     return publicUrl;
   },
 
-  // ── REALTIME ──
   subscribeItems(callback) {
     if (!sbReady()) return null;
-    return _sb
-      .channel('items-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, callback)
-      .subscribe();
+    return _sb.channel('items-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, callback).subscribe();
   },
 };
 
@@ -335,19 +361,21 @@ const SEED_MLOS = [
 async function runSeed(catMap) {
   // Insert scripts
   const scriptRows = SEED_SCRIPTS.map((s,i) => ({
-    name: s.name, price: s.price, category_id: catMap['Script'],
+    name: s.name, price: s.price, categoryId: catMap['Script'],
     url: s.url, previews: s.previews, notes: s.notes||'',
     images: [], bought: false, favorite: false, priority: false,
   }));
   // Insert MLOs
   const mloRows = SEED_MLOS.map((m,i) => ({
-    name: m.name, price: m.price, category_id: catMap['MLO'],
+    name: m.name, price: m.price, categoryId: catMap['MLO'],
     url: m.url, previews: m.previews||[], notes: m.notes||'',
     images: [], bought: false, favorite: false, priority: false,
   }));
   const allRows = [...scriptRows, ...mloRows];
-  const { error } = await _sb.from('items').insert(allRows);
-  if (error) console.error('Seed items error:', error);
+
+  for (const row of allRows) {
+    await SB.upsertItem(row);
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -450,6 +478,11 @@ async function doLogin() {
   btn.disabled=false; btn.innerHTML='Anmelden <span>→</span>';
   if (error) { showErr(errEl, error.message); return; }
 
+  if (!sbReady()) {
+    // Save local session
+    localStorage.setItem('local_session', JSON.stringify(data));
+  }
+
   // Fetch actual role from profiles table (not just user_metadata)
   const profile = await SB.getProfile(data.user.id);
   const meta    = data.user.user_metadata || {};
@@ -459,6 +492,17 @@ async function doLogin() {
     email: data.user.email,
     role:  profile?.role || meta.role || 'member',
   };
+  await bootApp();
+}
+
+async function doLoginLocal() {
+  S.user = {
+    id:    'local-user',
+    name:  'Local Admin',
+    email: 'local@local.host',
+    role:  'admin',
+  };
+  localStorage.setItem('local_session', JSON.stringify({ user: S.user }));
   await bootApp();
 }
 
@@ -526,11 +570,10 @@ async function bootApp() {
 }
 
 async function runFirstSeed() {
-  // Insert categories
   const catMap = {};
   for (const cat of SEED_CATEGORIES) {
-    const { data, error } = await _sb.from('categories').insert(cat).select().single();
-    if (!error && data) catMap[cat.name] = data.id;
+    const data = await SB.upsertCat(cat);
+    if (data) catMap[cat.name] = data.id;
   }
   await runSeed(catMap);
   toast('Daten erfolgreich angelegt ✓','s');
@@ -823,17 +866,19 @@ async function saveEntry() {
   if (!name)               { showErr(errEl,'Name ist Pflichtfeld.'); return; }
   if (isNaN(price)||price<0){ showErr(errEl,'Bitte gültigen Preis eingeben.'); return; }
 
-  // Upload new file images to Supabase Storage
+  // Upload images (Supabase Storage if available, else Base64)
   const images = [];
   for (const img of pendingImgs) {
     if (img.type==='file' && img.src.startsWith('data:')) {
-      try {
-        const blob = dataUrlToBlob(img.src);
-        const path = `items/${uid()}.${blob.type.split('/')[1]||'jpg'}`;
-        const publicUrl = await SB.uploadImage(blob, path);
-        images.push(publicUrl);
-      } catch(e) {
-        images.push(img.src); // fallback: store data URL (not recommended for prod)
+      if (sbReady()) {
+        try {
+          const blob = dataUrlToBlob(img.src);
+          const path = `items/${uid()}.${blob.type.split('/')[1]||'jpg'}`;
+          const publicUrl = await SB.uploadImage(blob, path);
+          images.push(publicUrl);
+        } catch(e) { images.push(img.src); }
+      } else {
+        images.push(img.src); // Local mode: store as Base64
       }
     } else {
       images.push(img.src);
@@ -1260,37 +1305,33 @@ async function doSetupConnect() {
 (async () => {
   const { url, key } = getSBCreds();
 
-  if (!url || !key) {
-    // No credentials saved → show setup card
-    showSetupCard();
-    return;
-  }
-
-  // Credentials exist → try to connect silently
-  const connected = await initSupabase();
-
-  if (!connected) {
-    // Credentials invalid → show setup card with pre-filled values
-    showSetupCard();
-    toast('Supabase-Verbindung fehlgeschlagen — Bitte Daten prüfen.', 'e');
-    return;
-  }
-
-  // Connected → check for existing session
+  // 1. Check for existing session (Supabase or Local)
   const session = await SB.getSession();
   if (session) {
-    // Always fetch role from profiles table on session restore
     const profile = await SB.getProfile(session.user.id);
     const meta    = session.user.user_metadata || {};
     S.user = {
       id:    session.user.id,
-      name:  profile?.name || meta.name || session.user.email.split('@')[0],
+      name:  profile?.name || meta.name || session.user.email?.split('@')[0],
       email: session.user.email,
       role:  profile?.role || meta.role || 'member',
     };
     await bootApp();
+    return;
+  }
+
+  // 2. No session → check credentials
+  if (!url || !key) {
+    showSetupCard();
+    return;
+  }
+
+  // 3. Credentials exist → try to connect
+  const connected = await initSupabase();
+  if (!connected) {
+    showSetupCard();
+    toast('Supabase-Verbindung fehlgeschlagen.', 'e');
   } else {
-    // Connected but not logged in → show login card directly
     showLoginCard();
   }
 })();
