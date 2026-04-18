@@ -149,7 +149,10 @@ const SB = {
       // Local Discord mock
       return { data: { user: { id: 'discord-user', email: 'discord@user.io', user_metadata: { name: 'Discord User', role: 'member' } } } };
     }
-    return await _sb.auth.signInWithOAuth({ provider: 'discord' });
+    return await _sb.auth.signInWithOAuth({
+      provider: 'discord',
+      options: { redirectTo: window.location.origin }
+    });
   },
   async signUp(email, password, name) {
     if (!sbReady()) return { error: { message: 'Registrierung im lokalen Modus nicht nötig. Bitte anmelden.' } };
