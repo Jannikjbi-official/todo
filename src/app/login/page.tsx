@@ -28,7 +28,10 @@ export default function LoginPage() {
           </p>
 
           <button 
-            onClick={() => signIn("discord", { callbackUrl: "/" })}
+            onClick={() => {
+              console.log("[LOGIN] Discord login button clicked");
+              signIn("discord", { callbackUrl: "/" });
+            }}
             className="w-full flex items-center justify-center gap-3 bg-[#5865F2] hover:bg-[#4752C4] text-white py-4 rounded-2xl font-bold text-lg transition-all active:scale-[0.98] shadow-xl shadow-[#5865F2]/20 group"
           >
             <svg className="w-6 h-6 fill-current group-hover:rotate-12 transition-transform" viewBox="0 0 24 24">

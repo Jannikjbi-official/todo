@@ -12,56 +12,76 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }: any) {
-      if (!profile) return false;
+      console.log("[AUTH] SignIn attempt:", { user, profile: profile?.id });
+      if (!profile) {
+        console.error("[AUTH] No profile found in signIn callback");
+        return false;
+      }
 
       const discordId = profile.id;
       const ownerId = process.env.OWNER_DISCORD_ID;
 
-      // Access Control: Only specific users allowed (or everyone if you want, but here we mirror the original logic)
-      // In the original, anyone could login but only owner got admin. 
-      // If the user wants strict access, we can restrict here.
-      // For now, let's allow login but handle roles in session.
+      console.log("[AUTH] Discord ID:", discordId, "Owner ID:", ownerId);
       
       return true;
     },
     async session({ session, token }: any) {
+      console.log("[AUTH] Session callback start:", { tokenSub: token.sub });
       if (session.user) {
         session.user.id = token.sub;
         session.user.discordId = token.discordId;
         
-        // Fetch or create profile in Supabase
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          // Fetch or create profile in Supabase
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profile) {
-          session.user.role = profile.role;
-        } else {
-          // Auto-promote owner
-          const isOwner = token.discordId === process.env.OWNER_DISCORD_ID;
-          const role = isOwner ? 'admin' : 'member';
-          
-          await supabase.from('profiles').upsert({
-            id: session.user.id,
-            name: session.user.name,
-            email: session.user.email,
-            role: role
-          });
-          
-          session.user.role = role;
+          if (error && error.code !== 'PGRST116') {
+            console.error("[AUTH] Supabase error fetching profile:", error);
+          }
+
+          if (profile) {
+            console.log("[AUTH] Profile found:", profile.role);
+            session.user.role = profile.role;
+          } else {
+            // Auto-promote owner
+            const isOwner = token.discordId === process.env.OWNER_DISCORD_ID;
+            const role = isOwner ? 'admin' : 'member';
+            
+            console.log("[AUTH] No profile found, creating one. Role:", role, "isOwner:", isOwner);
+            
+            const { error: upsertError } = await supabase.from('profiles').upsert({
+              id: session.user.id,
+              name: session.user.name,
+              email: session.user.email,
+              role: role
+            });
+            
+            if (upsertError) {
+              console.error("[AUTH] Error creating profile:", upsertError);
+            }
+            
+            session.user.role = role;
+          }
+        } catch (err) {
+          console.error("[AUTH] Unexpected error in session callback:", err);
         }
       }
+      console.log("[AUTH] Session callback end:", session.user?.role);
       return session;
     },
     async jwt({ token, profile, account }) {
       if (profile) {
+        console.log("[AUTH] JWT callback - profile found:", (profile as any).id);
         token.discordId = (profile as any).id;
       }
       return token;
     },
   },
+  debug: true,
   pages: {
     signIn: '/login',
   },
