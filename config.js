@@ -2,5 +2,6 @@
 const CONFIG = {
   SB_URL: 'https://ogrvpppthrmsypxtzwjr.supabase.co',
   SB_KEY: 'sb_publishable_qexUAH8-1tn6lInW5j1eSQ_WqqPWu5B',
-  DISCORD_CLIENT_ID: '1277207027227164773'
+  DISCORD_CLIENT_ID: '1277207027227164773',
+  OWNER_DISCORD_ID: '810459620035657769'
 };

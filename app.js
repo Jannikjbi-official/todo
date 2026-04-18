@@ -170,19 +170,37 @@ const SB = {
   },
   async getProfile(userId) {
     if (!sbReady()) return { id: userId, name: 'Local Admin', role: 'admin' };
+    
+    // Get session to check for Discord ID
+    const { data: { session } } = await _sb.auth.getSession();
+    const meta = session?.user?.user_metadata || {};
+    const discordId = meta.provider_id || session?.user?.identities?.[0]?.id;
+    const isOwner = discordId === (typeof CONFIG !== 'undefined' ? CONFIG.OWNER_DISCORD_ID : '');
+
     const { data, error } = await _sb.from('profiles').select('*').eq('id', userId).single();
+    
     if (error) {
-      if (error.code === 'PGRST116') {
-        const session = await this.getSession();
-        if (session) {
-          const meta = session.user.user_metadata || {};
-          await _sb.from('profiles').upsert({ id: userId, name: meta.name || session.user.email?.split('@')[0] || 'User', email: session.user.email, role: 'member' });
-          const { data: d2 } = await _sb.from('profiles').select('*').eq('id', userId).single();
-          return d2 || null;
-        }
+      if (error.code === 'PGRST116' && session) {
+        // Create new profile
+        const role = isOwner ? 'admin' : 'member';
+        await _sb.from('profiles').upsert({ 
+          id: userId, 
+          name: meta.full_name || meta.name || session.user.email?.split('@')[0] || 'User', 
+          email: session.user.email, 
+          role: role 
+        });
+        const { data: d2 } = await _sb.from('profiles').select('*').eq('id', userId).single();
+        return d2 || null;
       }
       return null;
     }
+
+    // Auto-promote owner to admin if they are not already
+    if (isOwner && data.role !== 'admin') {
+      await _sb.from('profiles').update({ role: 'admin' }).eq('id', userId);
+      data.role = 'admin';
+    }
+
     return data;
   },
   async getUsers() {
@@ -1199,6 +1217,24 @@ function refreshAll() {
       email: session.user.email,
       role:  profile?.role || 'member',
     };
+
+    if (S.user.role !== 'admin') {
+      toast('Zugriff verweigert. Du hast keine Berechtigung.', 'e');
+      el('login-card').innerHTML = `
+        <div class="auth-logo">
+          <div class="auth-logo-icon"><img src="icon.png" alt="JBI" style="width:28px;height:28px;object-fit:contain;border-radius:6px"/></div>
+          <span>JannikJBI <span style="font-weight:400;opacity:.55">Todo</span></span>
+        </div>
+        <div class="auth-headline" style="color:var(--red)">Zugriff verweigert</div>
+        <div class="auth-form">
+          <p style="color:var(--t2);font-size:.85rem;margin-bottom:15px;text-align:center;line-height:1.4">Dein Account (ID: ${S.user.id}) ist nicht für den Zugriff freigeschaltet.</p>
+          <button class="btn-discord" onclick="doLogout()">Zurück zum Login</button>
+        </div>
+      `;
+      el('auth-screen').classList.remove('hidden');
+      return;
+    }
+
     await bootApp();
     return;
   }
