@@ -22,8 +22,8 @@ function loadScript(src) {
 
 const sbReady = () => !!_sb;
 
-const SB_URL = 'https://ogrvpppthrmsypxtzwjr.supabase.co';
-const SB_KEY = 'sb_publishable_qexUAH8-1tn6lInW5j1eSQ_WqqPWu5B';
+const SB_URL = typeof CONFIG !== 'undefined' ? CONFIG.SB_URL : '';
+const SB_KEY = typeof CONFIG !== 'undefined' ? CONFIG.SB_KEY : '';
 
 
 // ═══════════════════════════════════════════
