@@ -234,6 +234,23 @@ body {
 }
 .btn-link:hover { color: var(--accent); }
 
+.btn-discord {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #5865f2; color: white; border: none;
+  border-radius: var(--r-sm); padding: 11px;
+  font-family: 'Outfit',sans-serif; font-size: .9rem; font-weight: 700;
+  cursor: pointer; transition: var(--dur) var(--ease);
+  width: 100%; margin-top: 8px;
+}
+.btn-discord:hover { background: #4752c4; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
+.btn-discord svg { width: 20px; height: 20px; fill: currentColor; }
+
+.auth-sep {
+  display: flex; align-items: center; gap: 10px; margin: 15px 0 10px;
+  color: var(--t3); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+}
+.auth-sep::before, .auth-sep::after { content: ''; flex: 1; height: 1px; background: var(--b2); }
+
 .btn-new {
   display: inline-flex; align-items: center; gap: 7px;
   background: var(--accent); color: white; border: none;

@@ -160,6 +160,13 @@ const SB = {
     }
     return await _sb.auth.signInWithPassword({ email, password });
   },
+  async signInDiscord() {
+    if (!sbReady()) {
+      // Local Discord mock
+      return { data: { user: { id: 'discord-user', email: 'discord@user.io', user_metadata: { name: 'Discord User', role: 'member' } } } };
+    }
+    return await _sb.auth.signInWithOAuth({ provider: 'discord' });
+  },
   async signUp(email, password, name) {
     if (!sbReady()) return { error: { message: 'Registrierung im lokalen Modus nicht nötig. Bitte anmelden.' } };
     const { data, error } = await _sb.auth.signUp({ email, password, options: { data: { name, role: 'member' } } });
@@ -504,6 +511,24 @@ async function doLoginLocal() {
   };
   localStorage.setItem('local_session', JSON.stringify({ user: S.user }));
   await bootApp();
+}
+
+async function doLoginDiscord() {
+  const { data, error } = await SB.signInDiscord();
+  if (error) { toast(error.message, 'e'); return; }
+  if (!data) return; // OAuth redirecting...
+
+  if (!sbReady()) {
+    // Local mock session
+    S.user = {
+      id:    data.user.id,
+      name:  data.user.user_metadata.name || 'Discord User',
+      email: data.user.email,
+      role:  data.user.user_metadata.role || 'member',
+    };
+    localStorage.setItem('local_session', JSON.stringify({ user: S.user }));
+    await bootApp();
+  }
 }
 
 async function doRegister() {
@@ -1305,7 +1330,12 @@ async function doSetupConnect() {
 (async () => {
   const { url, key } = getSBCreds();
 
-  // 1. Check for existing session (Supabase or Local)
+  // 1. Try to connect silently if creds exist (needed for OAuth redirects)
+  if (url && key) {
+    await initSupabase();
+  }
+
+  // 2. Check for existing session (Supabase or Local)
   const session = await SB.getSession();
   if (session) {
     const profile = await SB.getProfile(session.user.id);
@@ -1320,17 +1350,9 @@ async function doSetupConnect() {
     return;
   }
 
-  // 2. No session → check credentials
+  // 3. No session → show appropriate card
   if (!url || !key) {
     showSetupCard();
-    return;
-  }
-
-  // 3. Credentials exist → try to connect
-  const connected = await initSupabase();
-  if (!connected) {
-    showSetupCard();
-    toast('Supabase-Verbindung fehlgeschlagen.', 'e');
   } else {
     showLoginCard();
   }
