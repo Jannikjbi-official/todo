@@ -174,7 +174,7 @@ const SB = {
     // Get session to check for Discord ID
     const { data: { session } } = await _sb.auth.getSession();
     const meta = session?.user?.user_metadata || {};
-    const discordId = meta.provider_id || session?.user?.identities?.[0]?.id;
+    const discordId = session?.user?.identities?.find(i => i.provider === 'discord')?.id || meta.provider_id || meta.sub;
     const isOwner = discordId === (typeof CONFIG !== 'undefined' ? CONFIG.OWNER_DISCORD_ID : '');
 
     const { data, error } = await _sb.from('profiles').select('*').eq('id', userId).single();
@@ -1175,7 +1175,7 @@ function toast(msg, type='i') {
   const div=document.createElement('div');
   div.className=`toast toast-${type}`;
   div.innerHTML=`<span>${icons[type]}</span><span>${msg}</span>`;
-  el('toasts').appendChild(div);
+  el('toast-container').appendChild(div);
   setTimeout(()=>{ div.style.opacity='0'; div.style.transform='translateX(20px)'; div.style.transition='.3s'; setTimeout(()=>div.remove(),300); },3500);
 }
 
@@ -1210,7 +1210,13 @@ function refreshAll() {
   const session = await SB.getSession();
   if (session) {
     const profile = await SB.getProfile(session.user.id);
-    const meta    = session.user.user_metadata || {};
+    const meta = session.user.user_metadata || {};
+    // Extract Discord ID from identities or metadata
+    const discordId = session.user.identities?.find(i => i.provider === 'discord')?.id || meta.provider_id || meta.sub;
+    const isOwner = discordId === (typeof CONFIG !== 'undefined' ? CONFIG.OWNER_DISCORD_ID : '');
+    
+    console.log('User Login:', { discordId, isOwner, role: profile?.role });
+
     S.user = {
       id:    session.user.id,
       name:  profile?.name || meta.full_name || meta.name || session.user.email?.split('@')[0],
