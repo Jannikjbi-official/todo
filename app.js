@@ -22,12 +22,9 @@ function loadScript(src) {
 
 const sbReady = () => !!_sb;
 
-function getSBCreds() {
-  return {
-    url:  localStorage.getItem('sb_url')  || '',
-    key:  localStorage.getItem('sb_akey') || '',
-  };
-}
+const SB_URL = 'https://ogrvpppthrmsypxtzwjr.supabase.co';
+const SB_KEY = 'sb_publishable_qexUAH8-1tn6lInW5j1eSQ_WqqPWu5B';
+
 
 // ═══════════════════════════════════════════
 // ═══════════════════════════════════════════
@@ -40,31 +37,18 @@ const LStore = {
 };
 
 async function initSupabase() {
-  const { url, key } = getSBCreds();
-  if (!url || !key) {
-    console.info('No Supabase credentials. Running in Local Mode.');
-    return true; // "Success" for local mode
-  }
-
   try {
     if (!window.supabase) {
       await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');
     }
-    _sb = window.supabase.createClient(url, key);
-
-    const { error } = await _sb.from('categories').select('id').limit(1);
-    if (error && error.code !== 'PGRST116') {
-      console.warn('Supabase connection error:', error.message);
-      _sb = null;
-      return false;
-    }
+    _sb = window.supabase.createClient(SB_URL, SB_KEY);
     return true;
   } catch(e) {
-    console.warn('Supabase init failed:', e);
-    _sb = null;
+    console.error('Supabase init failed:', e);
     return false;
   }
 }
+
 
 // ═══════════════════════════════════════════
 //  SUPABASE DATA LAYER
@@ -466,41 +450,6 @@ function calcStats() {
 // ═══════════════════════════════════════════
 //  AUTH
 // ═══════════════════════════════════════════
-async function doLogin() {
-  const email = v('l-email'), pass = v('l-pass'), errEl = el('l-err');
-  errEl.classList.add('hidden');
-  if (!email||!pass) { showErr(errEl,'Bitte alle Felder ausfüllen.'); return; }
-
-  const btn = errEl.previousElementSibling;
-  btn.disabled = true; btn.textContent = 'Anmelden…';
-
-  if (!sbReady()) {
-    showErr(errEl,'Supabase nicht verbunden.');
-    showSetupCard();
-    btn.disabled=false; btn.innerHTML='Anmelden <span>→</span>';
-    return;
-  }
-
-  const { data, error } = await SB.signIn(email, pass);
-  btn.disabled=false; btn.innerHTML='Anmelden <span>→</span>';
-  if (error) { showErr(errEl, error.message); return; }
-
-  if (!sbReady()) {
-    // Save local session
-    localStorage.setItem('local_session', JSON.stringify(data));
-  }
-
-  // Fetch actual role from profiles table (not just user_metadata)
-  const profile = await SB.getProfile(data.user.id);
-  const meta    = data.user.user_metadata || {};
-  S.user = {
-    id:    data.user.id,
-    name:  profile?.name || meta.name || email.split('@')[0],
-    email: data.user.email,
-    role:  profile?.role || meta.role || 'member',
-  };
-  await bootApp();
-}
 
 async function doLoginLocal() {
   S.user = {
@@ -514,34 +463,8 @@ async function doLoginLocal() {
 }
 
 async function doLoginDiscord() {
-  const { data, error } = await SB.signInDiscord();
+  const { error } = await SB.signInDiscord();
   if (error) { toast(error.message, 'e'); return; }
-  if (!data) return; // OAuth redirecting...
-
-  if (!sbReady()) {
-    // Local mock session
-    S.user = {
-      id:    data.user.id,
-      name:  data.user.user_metadata.name || 'Discord User',
-      email: data.user.email,
-      role:  data.user.user_metadata.role || 'member',
-    };
-    localStorage.setItem('local_session', JSON.stringify({ user: S.user }));
-    await bootApp();
-  }
-}
-
-async function doRegister() {
-  const name=v('r-name'), email=v('r-email'), pass=v('r-pass'), errEl=el('r-err');
-  errEl.classList.add('hidden');
-  if (!name||!email||!pass) { showErr(errEl,'Alle Felder ausfüllen.'); return; }
-  if (pass.length<8)        { showErr(errEl,'Passwort min. 8 Zeichen.'); return; }
-  if (!sbReady())           { showErr(errEl,'Supabase nicht konfiguriert.'); return; }
-
-  const { data, error } = await SB.signUp(email, pass, name);
-  if (error) { showErr(errEl, error.message); return; }
-  toast('Registrierung erfolgreich! Bitte E-Mail bestätigen.','s');
-  switchTab('login');
 }
 
 async function doLogout() {
@@ -551,12 +474,7 @@ async function doLogout() {
   el('auth-screen').classList.remove('hidden');
 }
 
-function switchTab(t) {
-  el('form-login').classList.toggle('hidden', t!=='login');
-  el('form-register').classList.toggle('hidden', t!=='register');
-  document.querySelectorAll('.auth-tab').forEach((b,i)=>
-    b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
-}
+
 // (setup flow is now handled by two-card HTML — showSetupCard / doSetupConnect)
 
 
@@ -1046,23 +964,15 @@ async function moderateImg(b64url, label='Bild') {
 // ═══════════════════════════════════════════
 function openSettingsModal() {
   el('oai-key').value = getApiKey();
-  el('sb-url').value  = localStorage.getItem('sb_url')||'';
-  el('sb-akey').value = localStorage.getItem('sb_akey')||'';
+  el('sb-url').value  = SB_URL;
+  el('sb-akey').value = SB_KEY;
   updateModIndicator();
   el('settings-modal').classList.remove('hidden');
 }
 async function saveSettings() {
   const oaiKey = el('oai-key').value.trim();
-  const sbUrl  = el('sb-url').value.trim();
-  const sbKey  = el('sb-akey').value.trim();
-  localStorage.setItem('oai_key',  oaiKey);
-  localStorage.setItem('sb_url',   sbUrl);
-  localStorage.setItem('sb_akey',  sbKey);
+  localStorage.setItem('oai_key', oaiKey);
 
-  if (sbUrl && sbKey) {
-    const ok = await initSupabase();
-    toast(ok ? 'Supabase verbunden ✓' : 'Supabase-Verbindung fehlgeschlagen.', ok?'s':'e');
-  }
   updateModIndicator();
   closeModal('settings-modal');
   toast('Einstellungen gespeichert ✓','s');
@@ -1263,97 +1173,34 @@ function refreshAll() {
   el('pill-val').textContent        = fmt(s.open);
 }
 
-// ═══════════════════════════════════════════
-//  SETUP FLOW — Two-step: Connect → Login
-// ═══════════════════════════════════════════
-
-function showSetupCard() {
-  el('setup-card').classList.remove('hidden');
-  el('login-card').classList.add('hidden');
-  // Pre-fill if credentials already saved
-  const url = localStorage.getItem('sb_url') || '';
-  const key = localStorage.getItem('sb_akey') || '';
-  if (url) el('setup-url').value = url;
-  if (key) el('setup-key').value = key;
-  validateSetupForm();
-}
-
-function showLoginCard() {
-  el('setup-card').classList.add('hidden');
-  el('login-card').classList.remove('hidden');
-}
-
-function validateSetupForm() {
-  const url = el('setup-url').value.trim();
-  const key = el('setup-key').value.trim();
-  const valid = url.startsWith('https://') && url.includes('.supabase.co') && key.startsWith('eyJ');
-  el('setup-btn').disabled = !valid;
-  el('setup-btn').style.opacity = valid ? '1' : '0.45';
-}
-
-async function doSetupConnect() {
-  const url  = el('setup-url').value.trim();
-  const key  = el('setup-key').value.trim();
-  const errEl = el('setup-err');
-  errEl.classList.add('hidden');
-
-  const btn = el('setup-btn');
-  btn.disabled = true;
-  el('setup-btn-text').textContent = 'Verbinde…';
-
-  localStorage.setItem('sb_url',  url);
-  localStorage.setItem('sb_akey', key);
-
-  const ok = await initSupabase();
-
-  if (!ok) {
-    localStorage.removeItem('sb_url');
-    localStorage.removeItem('sb_akey');
-    errEl.textContent = '❌ Verbindung fehlgeschlagen. Bitte URL und Key prüfen.';
-    errEl.classList.remove('hidden');
-    btn.disabled = false;
-    el('setup-btn-text').textContent = 'Verbinden';
-    return;
-  }
-
-  // Success
-  el('setup-btn-text').textContent = '✓ Verbunden!';
-  setTimeout(() => {
-    showLoginCard();
-    toast('Supabase verbunden ✓ Jetzt anmelden.', 's');
-  }, 600);
-}
 
 // ═══════════════════════════════════════════
 //  BOOT SEQUENCE
 // ═══════════════════════════════════════════
 (async () => {
-  const { url, key } = getSBCreds();
-
-  // 1. Try to connect silently if creds exist (needed for OAuth redirects)
-  if (url && key) {
-    await initSupabase();
+  // 1. Connect to Supabase
+  const ok = await initSupabase();
+  if (!ok) {
+    toast('Datenbank-Verbindung fehlgeschlagen.', 'e');
+    return;
   }
 
-  // 2. Check for existing session (Supabase or Local)
+  // 2. Check for existing session
   const session = await SB.getSession();
   if (session) {
     const profile = await SB.getProfile(session.user.id);
     const meta    = session.user.user_metadata || {};
     S.user = {
       id:    session.user.id,
-      name:  profile?.name || meta.name || session.user.email?.split('@')[0],
+      name:  profile?.name || meta.full_name || meta.name || session.user.email?.split('@')[0],
       email: session.user.email,
-      role:  profile?.role || meta.role || 'member',
+      role:  profile?.role || 'member',
     };
     await bootApp();
     return;
   }
 
-  // 3. No session → show appropriate card
-  if (!url || !key) {
-    showSetupCard();
-  } else {
-    showLoginCard();
-  }
+  // 3. No session -> show login card (Discord only)
+  el('auth-screen').classList.remove('hidden');
 })();
+

@@ -22,108 +22,24 @@
     <div class="auth-grid-overlay"></div>
   </div>
 
-  <!-- STEP 1: Supabase Setup (shown when not configured) -->
-  <div class="auth-card" id="setup-card">
+  <!-- Discord Login Card -->
+  <div class="auth-card" id="login-card">
     <div class="auth-logo">
       <div class="auth-logo-icon"><img src="icon.png" alt="JBI" style="width:28px;height:28px;object-fit:contain;border-radius:6px"/></div>
-      <span>JannikJBI <span style="font-weight:400;opacity:.7">Todo</span></span>
-      <div class="auth-logo-tag">Setup</div>
-    </div>
-
-    <div class="setup-step-indicator">
-      <div class="setup-step setup-step-active">
-        <div class="setup-step-num">1</div>
-        <div class="setup-step-label">Supabase verbinden</div>
-      </div>
-      <div class="setup-step-line"></div>
-      <div class="setup-step setup-step-inactive">
-        <div class="setup-step-num">2</div>
-        <div class="setup-step-label">Anmelden</div>
-      </div>
-    </div>
-
-    <div class="setup-info-box">
-      <div class="setup-info-icon">🗄️</div>
-      <div>
-        <div class="setup-info-title">Supabase-Datenbank verbinden</div>
-        <div class="setup-info-sub">Alle Daten werden sicher in deiner eigenen Supabase-Datenbank gespeichert.</div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Supabase Project URL</label>
-      <input type="text" id="setup-url" placeholder="https://abcdefghij.supabase.co"
-             oninput="validateSetupForm()" />
-      <small class="hint">Supabase Dashboard → Project Settings → API → Project URL</small>
-    </div>
-
-    <div class="field">
-      <label>Anon / Public Key</label>
-      <div class="pw-field">
-        <input type="password" id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…"
-               oninput="validateSetupForm()" />
-        <button type="button" class="pw-eye" onclick="togglePw('setup-key')">👁</button>
-      </div>
-      <small class="hint">Supabase Dashboard → Project Settings → API → anon public</small>
-    </div>
-
-    <div class="field-error hidden" id="setup-err"></div>
-    
-    <div style="display:flex;gap:10px">
-      <button class="btn-auth" id="setup-btn" onclick="doSetupConnect()" disabled style="flex:1">
-        <span id="setup-btn-text">Verbinden</span>
-        <span>→</span>
-      </button>
-      <button class="btn-ghost" onclick="doLoginLocal()" style="border:1px solid var(--b2);padding:0 20px;border-radius:12px;font-size:.85rem;font-weight:600;color:var(--t2)">Lokal starten</button>
-    </div>
-
-    <div class="setup-help-link">
-      Noch kein Supabase-Konto?
-      <a href="https://supabase.com" target="_blank" rel="noopener">Kostenlos erstellen →</a>
-    </div>
-  </div>
-
-  <!-- STEP 2: Login (shown after Supabase is connected) -->
-  <div class="auth-card hidden" id="login-card">
-    <div class="auth-logo">
-      <div class="auth-logo-icon"><img src="icon.png" alt="JBI" style="width:28px;height:28px;object-fit:contain;border-radius:6px"/></div>
-      <span>JannikJBI <span style="font-weight:400;opacity:.7">Todo</span></span>
-      <div class="auth-logo-tag" style="background:var(--green-dim);color:var(--green);border-color:rgba(34,212,126,.25)">✓ Verbunden</div>
+      <span>JannikJBI <span style="font-weight:400;opacity:.55">Todo</span></span>
     </div>
 
     <div class="auth-headline">Asset Management<br/><em>für dein Projekt</em></div>
 
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login')">Anmelden</button>
-      <button class="auth-tab" onclick="switchTab('register')">Registrieren</button>
-    </div>
-
-    <div id="form-login" class="auth-form">
-      <div class="field"><label>E-Mail</label><input type="email" id="l-email" placeholder="deine@email.de" /></div>
-      <div class="field"><label>Passwort</label><input type="password" id="l-pass" placeholder="••••••••" /></div>
-      <div class="field-error hidden" id="l-err"></div>
-      <button class="btn-auth" onclick="doLogin()">Anmelden <span>→</span></button>
-      
-      <div class="auth-sep">Oder</div>
+    <div class="auth-form">
+      <p style="color:var(--t2);font-size:.85rem;margin-bottom:15px;text-align:center;line-height:1.4">Bitte melde dich mit deinem Discord-Account an, um auf das Dashboard zuzugreifen.</p>
       
       <button class="btn-discord" onclick="doLoginDiscord()">
         <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.076.076 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.947 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.086 2.157 2.419c0 1.334-.946 2.419-2.157 2.419z"/></svg>
-        Mit Discord anmelden
+        Anmelden mit Discord
       </button>
-
-      <button type="button" class="btn-reconnect" onclick="showSetupCard()">⚙️ Supabase neu konfigurieren</button>
-    </div>
-
-    <div id="form-register" class="auth-form hidden">
-      <div class="field"><label>Name</label><input type="text" id="r-name" placeholder="Dein Name" /></div>
-      <div class="field"><label>E-Mail</label><input type="email" id="r-email" placeholder="du@server.de" /></div>
-      <div class="field"><label>Passwort</label><input type="password" id="r-pass" placeholder="Min. 8 Zeichen" /></div>
-      <div class="field-error hidden" id="r-err"></div>
-      <button class="btn-auth" onclick="doRegister()">Account erstellen <span>→</span></button>
-      <button type="button" class="btn-reconnect" onclick="showSetupCard()">⚙️ Supabase neu konfigurieren</button>
     </div>
   </div>
-
 </div>
 
 <!-- APP -->
@@ -208,49 +124,39 @@
         <span class="topbar-title" id="topbar-title">Dashboard</span>
       </div>
       <div class="topbar-r">
-        <div class="budget-pill">
-          <span>Noch offen:</span>
-          <strong id="pill-val">€0,00</strong>
-        </div>
-        <button class="btn-new" onclick="openEntryModal()">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5v10M1.5 6.5h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          Neuer Eintrag
-        </button>
+        <div class="budget-pill">Noch offen: <strong id="pill-val">0,00 €</strong></div>
       </div>
     </header>
 
     <!-- DASHBOARD -->
-    <section class="page active" id="page-dashboard">
+    <div class="page active" id="page-dashboard">
       <div class="dash-welcome">
         <div>
           <div class="dash-greeting" id="dash-greeting">Guten Tag</div>
-          <h1 class="dash-h1" id="dash-username">—</h1>
-          <p class="dash-sub">Deine aktuelle Asset-Übersicht für dein FiveM-Projekt.</p>
+          <h1 class="dash-h1"><span id="dash-username">—</span></h1>
+          <p class="dash-sub">Hier ist die Übersicht deiner geplanten Assets.</p>
         </div>
         <div class="ring-wrap">
-          <svg viewBox="0 0 72 72" class="ring-svg">
-            <circle cx="36" cy="36" r="28" class="ring-track"/>
-            <circle cx="36" cy="36" r="28" class="ring-progress" id="ring-progress" stroke-dasharray="176" stroke-dashoffset="176"/>
-          </svg>
+          <svg class="ring-svg"><circle class="ring-track" cx="40" cy="40" r="28" fill="none" stroke-width="6"/><circle class="ring-progress" id="ring-progress" cx="40" cy="40" r="28" fill="none" stroke-width="6"/></svg>
           <div class="ring-inner">
-            <div class="ring-num" id="ring-num">0%</div>
-            <div class="ring-sub">gekauft</div>
+            <span class="ring-num" id="ring-num">0%</span>
+            <span class="ring-sub">Erledigt</span>
           </div>
         </div>
       </div>
 
       <div class="stat-row">
         <div class="stat-box">
-          <div class="stat-icon-wrap stat-icon-total">💰</div>
-          <div><div class="stat-label">Gesamtwert</div><div class="stat-val" id="s-total">€0,00</div><div class="stat-meta" id="s-total-meta">0 Assets</div></div>
+          <div class="stat-icon-wrap">💎</div>
+          <div><div class="stat-label">Gesamtbudget</div><div class="stat-val" id="s-total">0,00 €</div><div class="stat-meta" id="s-total-meta">0 Assets</div></div>
         </div>
         <div class="stat-box">
-          <div class="stat-icon-wrap stat-icon-green">✅</div>
-          <div><div class="stat-label">Ausgegeben</div><div class="stat-val" id="s-spent">€0,00</div><div class="stat-meta" id="s-spent-meta">0 gekauft</div></div>
+          <div class="stat-icon-wrap">💳</div>
+          <div><div class="stat-label">Bereits Gekauft</div><div class="stat-val" id="s-spent">0,00 €</div><div class="stat-meta" id="s-spent-meta">0 Assets</div></div>
         </div>
         <div class="stat-box">
-          <div class="stat-icon-wrap stat-icon-amber">⏳</div>
-          <div><div class="stat-label">Noch offen</div><div class="stat-val" id="s-open">€0,00</div><div class="stat-meta" id="s-open-meta">0 offen</div></div>
+          <div class="stat-icon-wrap">⏳</div>
+          <div><div class="stat-label">Noch Offen</div><div class="stat-val" id="s-open">0,00 €</div><div class="stat-meta" id="s-open-meta">0 Assets</div></div>
         </div>
         <div class="stat-box stat-box-progress">
           <div class="stat-label">Fortschritt</div>
@@ -260,214 +166,143 @@
         </div>
       </div>
 
-      <div class="section-header"><h2>Kategorien</h2><button class="btn-link" onclick="nav('list')">Alle →</button></div>
+      <div class="section-header"><h2>Kategorien</h2></div>
       <div class="cat-cards" id="cat-cards"></div>
 
-      <div class="section-header" style="margin-top:36px"><h2>Zuletzt hinzugefügt</h2></div>
+      <div class="section-header" style="margin-top:32px"><h2>Zuletzt hinzugefügt</h2></div>
       <div class="asset-grid" id="dash-recent"></div>
-    </section>
+    </div>
 
-    <!-- LIST -->
-    <section class="page" id="page-list">
+    <!-- LIST PAGE -->
+    <div class="page" id="page-list">
+      <div class="cat-strip" id="cat-strip"></div>
       <div class="list-bar">
-        <div class="chips" id="list-chips">
+        <div class="chips">
           <button class="chip active" onclick="setFilter('all')">Alle</button>
           <button class="chip" onclick="setFilter('open')">Offen</button>
           <button class="chip" onclick="setFilter('bought')">Gekauft</button>
-          <button class="chip" onclick="setFilter('favorites')">⭐</button>
+          <button class="chip" onclick="setFilter('favorites')">Favoriten</button>
         </div>
         <div class="list-bar-r">
-          <select class="sort-sel" id="sort-sel" onchange="handleSort(this.value)">
+          <select class="sort-sel" id="pref-sort" onchange="handleSort(this.value)">
             <option value="newest">Neueste zuerst</option>
             <option value="oldest">Älteste zuerst</option>
-            <option value="price-desc">Preis ↓</option>
-            <option value="price-asc">Preis ↑</option>
-            <option value="az">Name A–Z</option>
+            <option value="price-desc">Preis: Hoch → Tief</option>
+            <option value="price-asc">Preis: Tief → Hoch</option>
+            <option value="az">Name: A-Z</option>
           </select>
           <div class="view-toggle">
-            <button class="vt-btn active" id="vt-grid" onclick="setView('grid')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x=".5" y=".5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7.5" y=".5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x=".5" y="7.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7.5" y="7.5" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg></button>
-            <button class="vt-btn" id="vt-list" onclick="setView('list')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M3 3h7M3 6.5h7M3 10h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+            <button class="vt-btn active" id="vt-grid" onclick="setView('grid')"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="1.5" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="1.5" y="8" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="8" y="8" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.2"/></svg></button>
+            <button class="vt-btn" id="vt-list" onclick="setView('list')"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 3h11M1.5 7h11M1.5 11h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
           </div>
         </div>
       </div>
-      <div class="cat-strip" id="cat-strip"></div>
       <div class="asset-grid" id="list-grid"></div>
-    </section>
+    </div>
 
-    <!-- ADMIN -->
-    <section class="page" id="page-admin">
+    <!-- ADMIN PAGE -->
+    <div class="page" id="page-admin">
+      <div class="dash-welcome"><h1 class="dash-h1">Admin Panel</h1></div>
       <div class="admin-grid">
-        <div class="admin-panel">
-          <div class="admin-panel-hd"><h3>Kategorien</h3><button class="btn-sm-acc" onclick="openCatModal()">+ Neu</button></div>
-          <div id="admin-cats"></div>
-        </div>
+        <!-- Categories Management -->
         <div class="admin-panel admin-panel-w">
-          <div class="admin-panel-hd"><h3>Alle Einträge</h3><span class="admin-count-badge" id="admin-count">0</span></div>
-          <div id="admin-entries"></div>
+          <div class="admin-panel-hd"><span>Kategorien</span> <button class="btn-sm-acc" onclick="openCatModal()">+ Neu</button></div>
+          <div id="admin-cats-list"></div>
         </div>
+        <!-- Entries Management -->
+        <div class="admin-panel admin-panel-w" style="grid-column: span 2">
+          <div class="admin-panel-hd"><span>Alle Assets</span> <button class="btn-sm-acc" onclick="openEntryModal()">+ Asset hinzufügen</button></div>
+          <div id="admin-entries-list"></div>
+        </div>
+        <!-- Stats & Users -->
         <div class="admin-panel">
-          <div class="admin-panel-hd"><h3>Statistiken</h3></div>
+          <div class="admin-panel-hd">System</div>
           <div class="admin-stats">
-            <div class="admin-stat-row"><span>Gesamt Assets</span><strong id="as-n">0</strong></div>
-            <div class="admin-stat-row"><span>Gesamtwert</span><strong id="as-total">€0</strong></div>
-            <div class="admin-stat-row"><span>Ausgegeben</span><strong id="as-spent">€0</strong></div>
-            <div class="admin-stat-row"><span>Noch offen</span><strong id="as-open">€0</strong></div>
-            <div class="admin-stat-row"><span>Kategorien</span><strong id="as-cats">0</strong></div>
-            <div class="admin-stat-row"><span>Nutzer</span><strong id="as-users">0</strong></div>
+            <div class="admin-stat-row"><span>Assets gesamt</span><strong id="a-count">0</strong></div>
+            <div class="admin-stat-row"><span>Nutzer</span><strong id="u-count">0</strong></div>
+            <button class="btn-add-link" style="margin:10px" onclick="runSeedAction()">Seed-Daten wiederherstellen</button>
           </div>
-        </div>
-        <div class="admin-panel">
-          <div class="admin-panel-hd"><h3>Nutzer</h3></div>
-          <div id="admin-users"></div>
+          <div class="admin-panel-hd" style="border-top:1px solid var(--b1)">Nutzer</div>
+          <div id="admin-users-list"></div>
         </div>
       </div>
-    </section>
+    </div>
   </main>
 </div>
 
 <!-- MODALS -->
-
-<!-- ENTRY MODAL -->
-<div class="overlay hidden" id="entry-modal" onclick="overlayClose(event,'entry-modal')">
-  <div class="modal modal-lg">
-    <div class="modal-hd"><h3 id="em-title">Neuer Eintrag</h3><button class="modal-x" onclick="closeModal('entry-modal')">✕</button></div>
-    <div class="modal-bd">
-      <input type="hidden" id="em-id"/>
-      <div class="form-row">
-        <div class="field f3"><label>Name *</label><input type="text" id="em-name" placeholder="z.B. okokBanking"/></div>
-        <div class="field f1"><label>Preis (€) *</label><input type="number" id="em-price" placeholder="0.00" min="0" step="0.01"/></div>
-      </div>
-      <div class="form-row">
-        <div class="field f2"><label>Kategorie</label><select id="em-cat"><option value="">— wählen —</option></select></div>
-        <div class="field f2"><label>Download-Link</label><input type="url" id="em-url" placeholder="https://store.example.com/…"/></div>
-      </div>
-
-      <div class="field">
-        <label>Vorschau-Links (YouTube / Bilder)</label>
-        <div id="preview-links-container"></div>
-        <button type="button" class="btn-add-link" onclick="addPreviewRow()">+ Vorschau-Link hinzufügen</button>
-      </div>
-
-      <div class="field"><label>Notizen</label><textarea id="em-notes" rows="2" placeholder="z.B. Rabattcode vorhanden, benötigt ox_lib…"></textarea></div>
-
-      <div class="field">
-        <label>Bilder</label>
-        <div class="img-tab-strip">
-          <button type="button" class="img-tab active" onclick="switchImgTab('upload')">📁 Upload</button>
-          <button type="button" class="img-tab" onclick="switchImgTab('url')">🔗 URL</button>
-        </div>
-        <div id="itab-upload">
-          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-inp').click()"
-               ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
-            <input type="file" id="file-inp" multiple accept="image/*" style="display:none" onchange="filesSelected(event)"/>
-            <div class="dz-inner">
-              <svg width="26" height="26" viewBox="0 0 26 26" fill="none" opacity="0.45"><rect x="2" y="2" width="22" height="22" rx="5" stroke="currentColor" stroke-width="1.5"/><path d="M13 17v-7M10 12l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <p>Dateien hierher ziehen oder <u>klicken</u></p>
-              <small>JPG, PNG, WEBP · max 5 MB</small>
-            </div>
-          </div>
-        </div>
-        <div id="itab-url" class="hidden">
-          <div class="url-img-row">
-            <input type="url" id="img-url-inp" placeholder="https://i.imgur.com/…"/>
-            <button type="button" class="btn-sm-acc" onclick="addUrlImage()">Laden</button>
-          </div>
-          <div id="url-img-preview" class="hidden" style="margin-top:8px">
-            <img id="url-img-el" src="" style="max-height:130px;border-radius:8px;border:1px solid var(--b2)"/>
-          </div>
-        </div>
-        <div class="mod-bar hidden" id="mod-bar"></div>
-        <div class="img-thumb-row" id="img-thumbs"></div>
-      </div>
-
-      <div class="toggle-row">
-        <label class="tgl-label"><input type="checkbox" id="em-bought" class="tgl-cb"/><span class="tgl"><span class="tgl-dot"></span></span>Bereits gekauft</label>
-        <label class="tgl-label"><input type="checkbox" id="em-fav" class="tgl-cb tgl-amber"/><span class="tgl tgl-amber-t"><span class="tgl-dot"></span></span>⭐ Favorit</label>
-        <label class="tgl-label"><input type="checkbox" id="em-prio" class="tgl-cb tgl-red"/><span class="tgl tgl-red-t"><span class="tgl-dot"></span></span>🔥 Priorität</label>
-      </div>
-      <div class="field-error hidden" id="em-err"></div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn-ghost" onclick="closeModal('entry-modal')">Abbrechen</button>
-      <button class="btn-accent" id="em-save" onclick="saveEntry()">Speichern</button>
-    </div>
-  </div>
+<div id="loading-overlay" class="overlay hidden" style="z-index:2000; flex-direction:column; gap:20px">
+  <div class="mod-spin" style="width:40px; height:40px; border-width:4px"></div>
+  <div class="loading-msg" style="font-weight:700; color:var(--t1)">Wird geladen…</div>
 </div>
 
-<!-- DETAIL MODAL -->
-<div class="overlay hidden" id="detail-modal" onclick="overlayClose(event,'detail-modal')">
-  <div class="modal modal-xl">
-    <div class="modal-hd"><h3 id="dm-title">—</h3><button class="modal-x" onclick="closeModal('detail-modal')">✕</button></div>
+<div id="detail-modal" class="overlay hidden" onclick="if(event.target===this)closeModal('detail-modal')">
+  <div class="modal modal-lg">
+    <div class="modal-hd"><h3 id="dm-title">Asset Detail</h3><button class="modal-x" onclick="closeModal('detail-modal')">✕</button></div>
     <div class="modal-bd" id="dm-body"></div>
     <div class="modal-ft">
-      <button class="btn-ghost" onclick="closeModal('detail-modal')">Schließen</button>
-      <button class="btn-ghost" id="dm-edit">✏️ Bearbeiten</button>
-      <button class="btn-danger" id="dm-del">🗑 Löschen</button>
+      <button class="btn-ghost" id="dm-del">Löschen</button>
+      <button class="btn-accent" id="dm-edit">Bearbeiten</button>
     </div>
   </div>
 </div>
 
-<!-- CAT MODAL -->
-<div class="overlay hidden" id="cat-modal" onclick="overlayClose(event,'cat-modal')">
-  <div class="modal modal-sm">
-    <div class="modal-hd"><h3 id="cm-title">Neue Kategorie</h3><button class="modal-x" onclick="closeModal('cat-modal')">✕</button></div>
+<div id="entry-modal" class="overlay hidden" onclick="if(event.target===this)closeModal('entry-modal')">
+  <div class="modal modal-xl">
+    <div class="modal-hd"><h3 id="em-title">Asset hinzufügen</h3><button class="modal-x" onclick="closeModal('entry-modal')">✕</button></div>
     <div class="modal-bd">
-      <input type="hidden" id="cm-id"/>
-      <div class="field"><label>Name *</label><input type="text" id="cm-name" placeholder="Scripts"/></div>
-      <div class="field"><label>Emoji</label><input type="text" id="cm-emoji" placeholder="📜" maxlength="4"/></div>
-      <div class="field"><label>Farbe</label>
-        <div class="color-row"><input type="color" id="cm-color" value="#6366f1" oninput="document.getElementById('cm-cv').textContent=this.value"/><span id="cm-cv">#6366f1</span></div>
+      <div class="form-row"><div class="field f3"><label>Name</label><input type="text" id="e-name" /></div><div class="field f1"><label>Preis (€)</label><input type="number" id="e-price" step="0.01" /></div></div>
+      <div class="field"><label>Kategorie</label><select id="e-cat"></select></div>
+      <div class="field"><label>Shop-Link <span class="optional-tag">(Optional)</span></label><input type="url" id="e-url" placeholder="https://..." /></div>
+      <div class="field"><label>Vorschau-Links <button class="btn-link" style="float:right" onclick="addPreviewLinkField()">+ Link</button></label><div id="preview-links-container"></div></div>
+      <div class="field"><label>Bilder <span class="optional-tag">(Drag & Drop oder URL)</span></label>
+        <div class="img-tab-strip"><button class="img-tab active" onclick="switchImgTab('upload')">Upload</button><button class="img-tab" onclick="switchImgTab('url')">Web-URL</button></div>
+        <div id="img-upload-sec" class="drop-zone" onclick="el('img-file').click()" ondragover="event.preventDefault();this.classList.add('dz-over')" ondragleave="this.classList.remove('dz-over')" ondrop="handleImgDrop(event)"><div class="dz-inner"><p>Datei <u>auswählen</u> oder hierher ziehen</p><small>JPG, PNG, WebP</small></div><input type="file" id="img-file" hidden multiple accept="image/*" onchange="handleImgFiles(this.files)"/></div>
+        <div id="img-url-sec" class="url-img-row hidden"><input type="url" id="e-img-url" placeholder="https://..."/><button class="btn-accent" onclick="addImgUrl()">Hinzufügen</button></div>
+        <div id="mod-bar" class="mod-bar hidden"></div>
+        <div class="img-thumb-row" id="img-thumbs"></div>
       </div>
-      <div class="field-error hidden" id="cm-err"></div>
+      <div class="field"><label>Notizen</label><textarea id="e-notes"></textarea></div>
+      <div class="toggle-row">
+        <label class="tgl-label"><input type="checkbox" id="e-bought" class="tgl-cb"/><div class="tgl"></div>Gekauft</label>
+        <label class="tgl-label"><input type="checkbox" id="e-fav" class="tgl-cb"/><div class="tgl"></div>Favorit</label>
+        <label class="tgl-label"><input type="checkbox" id="e-prio" class="tgl-cb tgl-red"/><div class="tgl-red-t"></div>Hohe Priorität</label>
+      </div>
     </div>
-    <div class="modal-ft">
-      <button class="btn-ghost" onclick="closeModal('cat-modal')">Abbrechen</button>
-      <button class="btn-accent" onclick="saveCat()">Speichern</button>
-    </div>
+    <div class="modal-ft"><button class="btn-ghost" onclick="closeModal('entry-modal')">Abbrechen</button><button class="btn-accent" onclick="saveEntry()">Speichern</button></div>
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
-<div class="overlay hidden" id="settings-modal" onclick="overlayClose(event,'settings-modal')">
+<div id="cat-modal" class="overlay hidden" onclick="if(event.target===this)closeModal('cat-modal')">
   <div class="modal modal-sm">
-    <div class="modal-hd"><h3>⚙️ Einstellungen</h3><button class="modal-x" onclick="closeModal('settings-modal')">✕</button></div>
+    <div class="modal-hd"><h3 id="cm-title">Kategorie</h3><button class="modal-x" onclick="closeModal('cat-modal')">✕</button></div>
     <div class="modal-bd">
-      <div class="field">
-        <label>OpenAI API-Key (Bild-Moderation)</label>
-        <div class="pw-field">
-          <input type="password" id="oai-key" placeholder="sk-…"/>
-          <button type="button" class="pw-eye" onclick="togglePw('oai-key')">👁</button>
-        </div>
-        <small class="hint">Nur lokal gespeichert. Direkt an OpenAI gesendet.</small>
-      </div>
-      <div class="mod-status-row" id="mod-status-row">
-        <span class="mod-dot" id="mod-dot"></span><span id="mod-label">Moderation: nicht konfiguriert</span>
-      </div>
-      <div class="field" style="margin-top:20px">
-        <label>Supabase URL <span class="optional-tag">optional</span></label>
-        <input type="text" id="sb-url" placeholder="https://xxx.supabase.co"/>
-      </div>
-      <div class="field">
-        <label>Supabase Anon Key <span class="optional-tag">optional</span></label>
-        <input type="text" id="sb-akey" placeholder="eyJ…"/>
-        <small class="hint">Ohne Key läuft die App mit localStorage.</small>
-      </div>
+      <div class="field"><label>Name</label><input type="text" id="c-name" /></div>
+      <div class="field"><label>Emoji</label><input type="text" id="c-emoji" maxlength="2" /></div>
+      <div class="field"><label>Akzentfarbe</label><div class="color-row"><input type="color" id="c-color" value="#5b6ef5"/><input type="text" id="c-color-hex" value="#5b6ef5" oninput="el('c-color').value=this.value"/></div></div>
     </div>
-    <div class="modal-ft">
-      <button class="btn-ghost" onclick="closeModal('settings-modal')">Abbrechen</button>
-      <button class="btn-accent" onclick="saveSettings()">Speichern</button>
-       </div>
+    <div class="modal-ft"><button class="btn-ghost" onclick="closeModal('cat-modal')">Abbrechen</button><button class="btn-accent" onclick="saveCat()">Speichern</button></div>
   </div>
 </div>
 
-<div class="toast-container" id="toasts"></div>
-
-<div class="loading-overlay hidden" id="loading-overlay">
-  <div class="loading-card">
-    <div class="loading-spinner"></div>
-    <div class="loading-msg">Lädt…</div>
+<div id="settings-modal" class="overlay hidden" onclick="if(event.target===this)closeModal('settings-modal')">
+  <div class="modal modal-md">
+    <div class="modal-hd"><h3>Einstellungen</h3><button class="modal-x" onclick="closeModal('settings-modal')">✕</button></div>
+    <div class="modal-bd">
+      <div class="section-header"><h4>Content Moderation</h4></div>
+      <div class="field"><label>OpenAI API Key <span class="optional-tag">(für Bild-Prüfung)</span></label><div class="pw-field"><input type="password" id="oai-key"/><button class="pw-eye" onclick="togglePw('oai-key')">👁</button></div></div>
+      <div class="mod-status-row"><div class="mod-dot" id="mod-dot"></div><span id="mod-label">Inaktiv</span></div>
+      
+      <div class="section-header" style="margin-top:20px"><h4>Supabase (Nur Cloud-Modus)</h4></div>
+      <div class="field"><label>URL</label><input type="text" id="sb-url" readonly /></div>
+      <div class="field"><label>Key</label><input type="password" id="sb-akey" readonly /></div>
+      <p class="hint">Diese Daten sind fest im System hinterlegt.</p>
+    </div>
+    <div class="modal-ft"><button class="btn-accent" onclick="saveSettings()">Schließen</button></div>
   </div>
 </div>
+
+<div id="toast-container" class="toast-container"></div>
 
 <script src="app.js"></script>
 </body>
