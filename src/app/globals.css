@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --font-inter: var(--font-inter);
+  --font-outfit: var(--font-outfit);
+  --font-jetbrains: var(--font-jetbrains);
+}
+
+:root {
+  --background: #0a0c14;
+  --foreground: #f8fafc;
+  --sidebar: #0f111a;
+  --border: #1e2235;
+  --accent: #6366f1;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-[#161925]/50 backdrop-blur-xl border border-[#1e2235] rounded-3xl;
+  }
+  
+  .btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-indigo-500/20;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-[#1e2235] text-slate-400 hover:text-white px-4 py-2 rounded-xl transition-all;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2235;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2f4a;
+}

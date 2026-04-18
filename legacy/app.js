@@ -175,7 +175,8 @@ const SB = {
     const { data: { session } } = await _sb.auth.getSession();
     const meta = session?.user?.user_metadata || {};
     const discordId = session?.user?.identities?.find(i => i.provider === 'discord')?.id || meta.provider_id || meta.sub;
-    const isOwner = discordId === (typeof CONFIG !== 'undefined' ? CONFIG.OWNER_DISCORD_ID : '');
+    const isOwner = discordId === (typeof CONFIG !== 'undefined' ? CONFIG.OWNER_DISCORD_ID : '')
+                 || session?.user?.id === '56d6d448-524f-402e-a842-318d2a2f636c';
 
     const { data, error } = await _sb.from('profiles').select('*').eq('id', userId).single();
     
@@ -1211,11 +1212,19 @@ function refreshAll() {
   if (session) {
     const profile = await SB.getProfile(session.user.id);
     const meta = session.user.user_metadata || {};
-    // Extract Discord ID from identities or metadata
-    const discordId = session.user.identities?.find(i => i.provider === 'discord')?.id || meta.provider_id || meta.sub;
-    const isOwner = discordId === (typeof CONFIG !== 'undefined' ? CONFIG.OWNER_DISCORD_ID : '');
+    // Detailed logging for debugging
+    console.log('Full User Object:', session.user);
     
-    console.log('User Login:', { discordId, isOwner, role: profile?.role });
+    // Try multiple ways to find the Discord ID
+    const discordId = session.user.identities?.find(i => i.provider === 'discord')?.id 
+                   || meta.provider_id 
+                   || meta.sub 
+                   || meta.custom_claims?.provider_id;
+                   
+    const isOwner = discordId === (typeof CONFIG !== 'undefined' ? CONFIG.OWNER_DISCORD_ID : '')
+                 || session.user.id === '56d6d448-524f-402e-a842-318d2a2f636c'; // Fallback to Supabase UUID
+    
+    console.log('Auth Check:', { discordId, supabaseId: session.user.id, isOwner, role: profile?.role });
 
     S.user = {
       id:    session.user.id,
